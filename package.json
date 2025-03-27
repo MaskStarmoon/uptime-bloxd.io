@@ -8,17 +8,16 @@
   "requires": true,
   "packages": {},
   "engines": {
-  "node": "16.x"
-},
+    "node": "16.x"
+  },
   "dependencies": {
     "express": "^4.21.0",
-    "playwright": "^1.27.1",
-    "playwright-stealth": "^1.0.5",
+    "playwright": "^1.51.1",
     "child_process": "^1.0.2",
     "axios": "^0.27.2"
   },
   "scripts": {
-    "start": "node index.js", 
+    "start": "node index.js",
     "dev": "node index.js"
   }
 }
