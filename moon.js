@@ -1,8 +1,6 @@
 const { chromium } = require("playwright");
-const stealth = require("playwright-stealth");
 
-const BLOXD_URL =
-  "https://www.crazygames.co.id/game/bloxdhop-io?czy_invite=true&utm_source=invite&g=classic_factions&lobby=dd-world";
+const BLOXD_URL = "https://www.crazygames.co.id/game/bloxdhop-io?czy_invite=true&utm_source=invite&g=classic_factions&lobby=dd-world";
 
 (async () => {
   const browser = await chromium.launch({
@@ -16,8 +14,6 @@ const BLOXD_URL =
   });
 
   const context = await browser.newContext();
-  await stealth(context); // Gunakan stealth agar tidak terdeteksi bot
-  const page = await context.newPage();
 
   // Gunakan User-Agent acak agar tidak dicurigai
   const userAgentList = [
@@ -25,7 +21,9 @@ const BLOXD_URL =
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.99 Safari/537.36",
     "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36"
   ];
-  await page.setUserAgent(userAgentList[Math.floor(Math.random() * userAgentList.length)]);
+  await context.setUserAgent(userAgentList[Math.floor(Math.random() * userAgentList.length)]);
+
+  const page = await context.newPage();
 
   console.log("🔄 Masuk ke Bloxd.io...");
   await page.goto(BLOXD_URL, { waitUntil: "networkidle2" });
