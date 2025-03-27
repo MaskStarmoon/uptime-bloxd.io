@@ -1,33 +1,58 @@
 const express = require("express");
-const puppeteer = require("puppeteer");
+const puppeteer = require("puppeteer-extra");
+const StealthPlugin = require("puppeteer-extra-plugin-stealth");
+const axios = require("axios");
+
+puppeteer.use(StealthPlugin());
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-
-// URL world Bloxd.io kamu
 const BLOXD_URL =
   "https://www.crazygames.co.id/game/bloxdhop-io?czy_invite=true&utm_source=invite&g=classic_factions&lobby=dd-world";
 
 let browser, page;
 
-// Fungsi untuk menjalankan bot di Puppeteer
+// Fungsi untuk menjalankan bot
 async function startBot() {
   try {
+    if (browser) {
+      console.log("Bot sudah berjalan!");
+      return;
+    }
+
     browser = await puppeteer.launch({
-      headless: false, // Set false agar browser tetap berjalan
-      args: ["--no-sandbox", "--disable-setuid-sandbox"]
+      headless: true, // Pastikan headless aktif agar tidak terdeteksi
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-blink-features=AutomationControlled"
+      ]
     });
 
     page = await browser.newPage();
-    await page.goto(BLOXD_URL);
-
-    console.log("Bot berhasil masuk ke World Bloxd.io!");
     
-    // Loop untuk tetap aktif
+    // Gunakan User-Agent manusia agar tidak terdeteksi bot
+    await page.setUserAgent(
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"
+    );
+
+    await page.goto(BLOXD_URL, { waitUntil: "networkidle2" });
+
+    console.log("Bot berhasil masuk ke Bloxd.io!");
+
+    // Simulasi gerakan agar tidak AFK
     setInterval(async () => {
-      await page.keyboard.press("W"); // Tekan tombol agar tidak AFK
-      console.log("Menekan tombol agar tetap online...");
+      await page.keyboard.press("W");
+      await page.mouse.move(
+        Math.random() * 800,
+        Math.random() * 600
+      ); // Gerak mouse acak
+      console.log("Simulasi aktivitas...");
+
+      // Simulasi delay acak agar lebih manusiawi
+      await new Promise((r) => setTimeout(r, Math.random() * 5000 + 1000));
     }, 60000); // Tiap 60 detik
+
   } catch (error) {
     console.error("Gagal menjalankan bot:", error);
   }
@@ -35,15 +60,11 @@ async function startBot() {
 
 // Endpoint untuk menjalankan bot
 app.get("/start", async (req, res) => {
-  if (!browser) {
-    await startBot();
-    res.send("Bot berhasil dijalankan!");
-  } else {
-    res.send("Bot sudah berjalan!");
-  }
+  await startBot();
+  res.send("Bot berhasil dijalankan!");
 });
 
-// Endpoint untuk menutup bot
+// Endpoint untuk menghentikan bot
 app.get("/stop", async (req, res) => {
   if (browser) {
     await browser.close();
@@ -54,7 +75,14 @@ app.get("/stop", async (req, res) => {
   }
 });
 
-// Jalankan server di Glitch
+// Ping server Glitch setiap 4 menit agar tetap hidup
+setInterval(() => {
+  axios.get("https://[namaprojekkamu].glitch.me/")
+    .then(() => console.log("Ping sukses!"))
+    .catch((err) => console.error("Ping gagal:", err));
+}, 240000); // 4 menit
+
+// Jalankan server
 app.listen(PORT, () => {
   console.log(`Server berjalan di port ${PORT}`);
 });
