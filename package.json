@@ -1,7 +1,7 @@
 {
-  "name": "uptime-starmoon",
+  "name": "Starmoon",
   "author": "MaskStarmoon",
-  "description": "uptime bloxd io",
+  "description": "bloxd",
   "version": "1.2.0",
   "main": "index.js",
   "lockfileVersion": 3,
