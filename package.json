@@ -12,9 +12,9 @@
 },
   "dependencies": {
     "express": "^4.17.3",
-    "puppeteer-extra": "^3.2.3",
-    "puppeteer-extra-plugin-stealth": "^2.10.0",
-    "puppeteer": "^19.0.0",
+    "playwright": "^1.27.1",
+    "playwright-stealth": "^1.0.5",
+    "child_process": "^1.0.2",
     "axios": "^0.27.2"
   },
   "scripts": {
