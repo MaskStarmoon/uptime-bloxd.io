@@ -8,14 +8,24 @@ const PROXY = 'http://1.94.31.35:8888'; // Ganti dengan alamat proxy jika diperl
 
 // Membaca cookie dari login.txt (JSON)
 const getCookies = () => {
-  const cookies = fs.readFileSync('login.txt', 'utf-8'); // Membaca file login.txt
-  return JSON.parse(cookies); // Mengembalikan cookies dalam format JSON
+  try {
+    const cookies = fs.readFileSync('login.txt', 'utf-8'); // Membaca file login.txt
+    return JSON.parse(cookies); // Mengembalikan cookies dalam format JSON
+  } catch (error) {
+    console.error('Error membaca cookies: ', error);
+    return null; // Mengembalikan null jika tidak bisa membaca atau formatnya salah
+  }
 };
 
 // Fungsi untuk melakukan request dengan https
 function joinWorld() {
   // Mengambil cookies dari login.txt
   const cookies = getCookies();
+
+  if (!cookies || cookies.length === 0) {
+    console.log("Cookie tidak ditemukan. Bot tidak dapat dijalankan.");
+    return null; // Menghentikan eksekusi jika cookie tidak ada
+  }
 
   // Mengatur header dengan user-agent dan cookies
   const options = {
@@ -34,21 +44,25 @@ function joinWorld() {
     options.agent = new https.Agent({ proxy: PROXY });
   }
 
-  // Melakukan request
-  const req = https.request(options, (res) => {
-    console.log(`Status Code: ${res.statusCode}`);
+  // Melakukan request dan memeriksa URL setiap 5 detik
+  const checkInterval = setInterval(() => {
+    const req = https.request(options, (res) => {
+      console.log(`Status Code: ${res.statusCode}`);
 
-    res.on('data', (d) => {
-      process.stdout.write(d); // Menampilkan respon dari server
+      res.on('data', (d) => {
+        process.stdout.write(d); // Menampilkan respon dari server
+      });
     });
-  });
 
-  req.on('error', (e) => {
-    console.error(`Error: ${e.message}`);
-  });
+    req.on('error', (e) => {
+      console.error(`Error: ${e.message}`);
+    });
 
-  req.end();
+    req.end();
+  }, 5000); // Memeriksa setiap 5 detik
+
+  return checkInterval; // Mengembalikan interval untuk menghentikan proses nanti jika perlu
 }
 
-// Menjalankan fungsi
+// Export fungsi joinWorld agar dapat digunakan di tempat lain
 module.exports = joinWorld;
