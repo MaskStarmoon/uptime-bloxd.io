@@ -1,29 +1,54 @@
-const puppeteer = require("puppeteer");
+const https = require("https");
+const fs = require("fs");
 
-const BLOXD_URL =
-  "https://www.crazygames.co.id/game/bloxdhop-io?czy_invite=true&utm_source=invite&g=classic_factions&lobby=dd-world";
+const BLOXD_URL = "https://bloxd.io/play/classic_factions/dd-world";
 
-(async () => {
-  const browser = await puppeteer.launch({
-    headless: true,
-    args: [
-      "--no-sandbox",
-      "--disable-setuid-sandbox",
-      "--disable-blink-features=AutomationControlled",
-      "--disable-dev-shm-usage"
-    ]
+// Konfigurasi Proxy (jika ada)
+const PROXY = 'http://1.94.31.35:8888'; // Ganti dengan alamat proxy jika diperlukan
+
+// Membaca cookie dari login.txt (JSON)
+const getCookies = () => {
+  const cookies = fs.readFileSync('login.txt', 'utf-8'); // Membaca file login.txt
+  return JSON.parse(cookies); // Mengembalikan cookies dalam format JSON
+};
+
+// Fungsi untuk melakukan request dengan https
+function joinWorld() {
+  // Mengambil cookies dari login.txt
+  const cookies = getCookies();
+
+  // Mengatur header dengan user-agent dan cookies
+  const options = {
+    hostname: 'bloxd.io',
+    port: 443,
+    path: '/play/classic_factions/dd-world',
+    method: 'GET',
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36',
+      'Cookie': cookies.map(cookie => `${cookie.name}=${cookie.value}`).join('; '), // Mengatur cookie
+    }
+  };
+
+  // Jika Anda menggunakan proxy, set proxy di sini
+  if (PROXY) {
+    options.agent = new https.Agent({ proxy: PROXY });
+  }
+
+  // Melakukan request
+  const req = https.request(options, (res) => {
+    console.log(`Status Code: ${res.statusCode}`);
+
+    res.on('data', (d) => {
+      process.stdout.write(d); // Menampilkan respon dari server
+    });
   });
 
-  const page = await browser.newPage();
-  console.log("🔄 Masuk ke Bloxd.io...");
-  await page.goto(BLOXD_URL, { waitUntil: "networkidle2" });
-  console.log("✅ Bot berhasil masuk ke Bloxd.io!");
+  req.on('error', (e) => {
+    console.error(`Error: ${e.message}`);
+  });
 
-  // Simulasi gerakan agar tidak AFK
-  setInterval(async () => {
-    await page.keyboard.press("W");
-    await page.mouse.move(Math.random() * 800, Math.random() * 600);
-    console.log("🎮 Simulasi aktivitas...");
-    await new Promise((r) => setTimeout(r, Math.random() * 5000 + 1000));
-  }, Math.random() * 120000 + 60000);
-})();
+  req.end();
+}
+
+// Menjalankan fungsi
+module.exports = joinWorld;
