@@ -17,6 +17,7 @@ app.get("/start", async (req, res) => {
     res.send("Bot berhasil dijalankan!");
   } catch (error) {
     res.status(500).send("Terjadi kesalahan saat memulai bot.");
+    console.log("DATA ERROR:", error.message)
   }
 });
 
